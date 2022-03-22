@@ -62,7 +62,7 @@ class SaleOrder(models.Model):
             line._check_product_availability()
 
     def _check_products_availability(self):
-        if any(line.is_available is False for line in self.order_line):
+        if any(line.is_available is False and line.product_id.type == "product" for line in self.order_line):
             raise ValidationError(
                 _("There is at least an unavailable product, please check your sale lines then proceed !")
             )

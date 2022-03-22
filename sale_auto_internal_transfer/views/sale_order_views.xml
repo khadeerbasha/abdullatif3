@@ -11,19 +11,20 @@
                     <field name="delivery_count_internal" widget="statinfo" string="INT Delivery"/>
                 </button>
             </xpath>
-            <button name="action_confirm" position="before">
-                <button name="action_check_product_availability" string="Check Availability" type="object"
-                        attrs="{'invisible': ['|', ('all_available_ok', '=', True), ('state', 'in', ('sale', 'done', 'cancel'))]}"
-                        class="btn-primary" data-hotkey="c"/>
-            </button>
-            <xpath expr="//button[@name='action_confirm'][2]" position="after">
-                <button name="action_check_product_availability" string="Check Availability" type="object"
-                        attrs="{'invisible': ['|', ('all_available_ok', '=', False), ('state', 'in', ('sale', 'done', 'cancel'))]}"
-                        data-hotkey="c"/>
-            </xpath>
+<!--            <button name="action_confirm" position="before">-->
+<!--                <button name="action_check_product_availability" string="Check Availability" type="object"-->
+<!--                        attrs="{'invisible': ['|', ('all_available_ok', '=', True), ('state', 'in', ('sale', 'done', 'cancel'))]}"-->
+<!--                        class="btn-primary" data-hotkey="c"/>-->
+<!--            </button>-->
+<!--            <xpath expr="//button[@name='action_confirm'][2]" position="after">-->
+<!--                <button name="action_check_product_availability" string="Check Availability" type="object"-->
+<!--                        attrs="{'invisible': ['|', ('all_available_ok', '=', False), ('state', 'in', ('sale', 'done', 'cancel'))]}"-->
+<!--                        data-hotkey="c"/>-->
+<!--            </xpath>-->
             <xpath expr="//notebook/page/field[@name='order_line']/tree/field[@name='route_id']" position="after">
-                <field name="warehouse_location_id" options="{'no_create': True}"/>
+                <field name="warehouse_location_id" attrs="{'readonly':[('product_type', 'in', ('service', 'consu'))]}" options="{'no_create': True}"/>
                 <field name="internal_warehouse_id" invisible="1" options="{'no_create': True}"/>
+                <field name="product_type" invisible="1"/>
                 <field name="is_available" force_save="1"/>
             </xpath>
             <xpath expr="//notebook/page/field[@name='order_line']/tree/field[@name='route_id']" position="attributes">

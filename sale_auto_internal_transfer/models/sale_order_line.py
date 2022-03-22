@@ -64,24 +64,32 @@ class SaleOrderLine(models.Model):
         if self.warehouse_location_id:
             self.route_id = False
 
+    @api.onchange('product_type')
+    def _onchange_product_type_location(self):
+        if self.product_type in ('service', 'consu'):
+            self.route_id = self.warehouse_location_id = False
+
     def _check_product_availability(self):
         for line in self:
-            if not line.route_id and not line.warehouse_location_id:
-                qty_to_check = line.product_id._get_qty_available_sale_location(
-                    line.warehouse_id.lot_stock_id)
-                line.is_available = (qty_to_check >= line.product_uom_qty > 0)
-                continue
-            if line.warehouse_location_id:
-                warehouse_location_stock = line.product_id._get_qty_available_sale_location(
-                    line.warehouse_location_id) if line.warehouse_location_id.warehouse_id != line.warehouse_id else 0
-                qty_to_check = warehouse_location_stock
-                line.is_available = (qty_to_check >= line.product_uom_qty > 0)
-                continue
-            if line.route_id.rule_ids and not line.warehouse_location_id:
-                route_location_stock = line.product_id._get_qty_available_sale_location(
-                    line.route_id.rule_ids[0].location_src_id)
-                qty_to_check = route_location_stock
-                line.is_available = (qty_to_check >= line.product_uom_qty > 0)
+            if line.product_type == 'product':
+                if not line.route_id and not line.warehouse_location_id:
+                    qty_to_check = line.product_id._get_qty_available_sale_location(
+                        line.warehouse_id.lot_stock_id)
+                    line.is_available = (qty_to_check >= line.product_uom_qty > 0)
+                    continue
+                if line.warehouse_location_id:
+                    warehouse_location_stock = line.product_id._get_qty_available_sale_location(
+                        line.warehouse_location_id) if line.warehouse_location_id.warehouse_id != line.warehouse_id else 0
+                    qty_to_check = warehouse_location_stock
+                    line.is_available = (qty_to_check >= line.product_uom_qty > 0)
+                    continue
+                if line.route_id.rule_ids and not line.warehouse_location_id:
+                    route_location_stock = line.product_id._get_qty_available_sale_location(
+                        line.route_id.rule_ids[0].location_src_id)
+                    qty_to_check = route_location_stock
+                    line.is_available = (qty_to_check >= line.product_uom_qty > 0)
+            elif line.product_type in ('service', 'consu'):
+                line.is_available = True
 
     def _create_internal_stock_moves(self, picking, internal_warehouse):
         """
