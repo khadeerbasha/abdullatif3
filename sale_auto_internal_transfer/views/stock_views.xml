@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_picking_planned_transfer" model="ir.actions.act_window">
+        <field name="name">New Transfer</field>
+        <field name="res_model">stock.picking</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state','=','assigned')]</field>
+        <field name="context">{
+            'search_default_picking_type_id': [active_id],
+            'default_picking_type_id': active_id,
+            'contact_display': 'partner_address',
+            }
+        </field>
+        <field name="search_view_id" ref="view_picking_internal_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No transfer found. Let's create one!
+            </p>
+            <p>
+                Transfers allow you to move products from one location to another.
+            </p>
+        </field>
+    </record>
+
+    <record id="view_stock_picking_type_kanban_inherit" model="ir.ui.view">
+        <field name="name">view_stock_picking_type_kanban_inherit</field>
+        <field name="model">stock.picking.type</field>
+        <field name="inherit_id" ref="stock.stock_picking_type_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="/kanban/templates/t//div[hasclass('o_kanban_card_manage_section')][2]/div[3]"
+                   position="replace">
+                <div role="menuitem">
+                    <a name="%(action_picking_planned_transfer)d" type="action">Planned Transfer</a>
+                </div>
+
+            </xpath>
+
+        </field>
+    </record>
+
+
+</odoo>

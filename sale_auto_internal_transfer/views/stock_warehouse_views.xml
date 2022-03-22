@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_create_missing_warehouse_locations" model="ir.actions.server">
+        <field name="name">Create Missing Locations</field>
+        <field name="model_id" ref="stock.model_stock_warehouse"/>
+        <field name="binding_model_id" ref="stock.model_stock_warehouse"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+            records._create_missing_locations({})
+        </field>
+    </record>
+
+    <record id="view_stock_warehouse_form_inherit" model="ir.ui.view">
+        <field name="name">view_stock_warehouse_form_inherit</field>
+        <field name="model">stock.warehouse</field>
+        <field name="inherit_id" ref="stock.view_warehouse"/>
+        <field name="arch" type="xml">
+            <field name="wh_output_stock_loc_id" position="after">
+                <field name="wh_transit_loc_id"/>
+            </field>
+        </field>
+    </record>
+
+
+</odoo>
