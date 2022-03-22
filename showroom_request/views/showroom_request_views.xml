@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Showroom Request Views -->
+    <record id="view_showroom_request_form" model="ir.ui.view">
+        <field name="name">view.showroom.request.form</field>
+        <field name="model">showroom.request</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="button_submit" string="Submit" class="oe_highlight" type="object" states="draft"
+                            groups="showroom_request.group_user"/>
+                    <button name="button_approve" string="Approve" class="oe_highlight" type="object"
+                            states="to_approve" groups="showroom_request.group_manager"/>
+                    <button name="button_reject" string="Reject" type="object" states="to_approve"
+                            groups="showroom_request.group_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" name="action_view_picking" class="oe_stat_button" icon="fa-truck"
+                                attrs="{'invisible': [('picking_count', '=', 0)]}" groups="stock.group_stock_user">
+                            <field name="picking_count" widget="statinfo" string="Transfers"/>
+                        </button>
+                    </div>
+                    <div class="oe_title" attrs="{'invisible': [('state', '=', 'draft')]}">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="picking_type_id" context="{'default_code': 'internal'}"/>
+                            <field name="location_src_id" groups="stock.group_stock_multi_locations"/>
+                            <field name="location_dest_id" groups="stock.group_stock_multi_locations"/>
+                        </group>
+                        <group>
+                            <field name="date"/>
+                            <field name="create_uid" widget="many2one_avatar_user"
+                                   attrs="{'invisible': [('create_uid', '=', False)]}"/>
+                            <field name="user_submit_id" states="to_approve" widget="many2one_avatar_user"/>
+                            <field name="user_approve_id" states="done" widget="many2one_avatar_user"/>
+                        </group>
+                    </group>
+                    <separator string="Products"/>
+                    <field name="line_ids" nolabel="1" widget="one2many">
+                        <tree editable="bottom" decoration-danger="quantity &lt; 0" decoration-muted="quantity == 0">
+                            <field name="sequence" widget="handle"/>
+                            <field name="product_id" context="{'default_type': 'product'}"/>
+                            <field name="quantity"/>
+                            <field name="product_uom_category_id" invisible="1" groups="uom.group_uom"/>
+                            <field name="uom_id" groups="uom.group_uom"/>
+                        </tree>
+                    </field>
+                </sheet>
+                <div class="o_attachment_preview"/>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_showroom_request_tree" model="ir.ui.view">
+        <field name="name">view.showroom.request.tree</field>
+        <field name="model">showroom.request</field>
+        <field name="arch" type="xml">
+            <tree sample="1">
+                <field name="name" optional="hide"/>
+                <field name="date"/>
+                <field name="create_uid" widget="many2one_avatar_user" optional="show"/>
+                <field name="picking_type_id" optional="show"/>
+                <field name="location_src_id" groups="stock.group_stock_multi_locations" optional="show"/>
+                <field name="location_dest_id" groups="stock.group_stock_multi_locations" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'"
+                       decoration-warning="state == 'to_approve'" decoration-success="state == 'done'"
+                       decoration-danger="state == 'rejected'" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_showroom_request_to_approve_tree" model="ir.ui.view">
+        <field name="name">view.showroom.request.to.approve.tree</field>
+        <field name="model">showroom.request</field>
+        <field name="inherit_id" ref="showroom_request.view_showroom_request_tree"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <field name="state" position="before">
+                <field name="user_submit_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="user_approve_id" widget="many2one_avatar_user" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_showroom_request_search" model="ir.ui.view">
+        <field name="name">Showroom Request View Search</field>
+        <field name="model">showroom.request</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="line_ids"/>
+                <field name="picking_type_id"/>
+                <field name="picking_ids"/>
+                <field name="location_src_id"/>
+                <field name="location_dest_id"/>
+                <field name="state"/>
+                <field name="date"/>
+                <field name="create_uid"/>
+                <field name="user_submit_id"/>
+                <field name="user_approve_id"/>
+
+                <filter name="filter_state_draft" string="New Requests" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_state_to_approve" string="To Approve" domain="[('state', '=', 'to_approve')]"/>
+                <filter name="filter_state_done" string="Approved" domain="[('state', '=', 'done')]"/>
+                <filter name="filter_state_canceled" string="Canceled" domain="[('state', '=', 'canceled')]"/>
+                <separator/>
+
+                <filter name="filter_date" date="date" default_period="this_year"/>
+                <filter name="filter_create_date" date="create_date" default_period="this_year"/>
+                <separator/>
+
+                <group expand="0" string="Group By">
+                    <filter string="State" name="groupby_state" domain="[]" context="{'group_by': 'state'}"/>
+                    <separator/>
+
+                    <filter string="Operation Type" name="groupby_picking_type" domain="[]"
+                            context="{'group_by': 'picking_type_id'}"/>
+                    <filter string="Source Location" name="groupby_location_src_id" domain="[]"
+                            context="{'group_by': 'location_src_id'}"/>
+                    <filter string="Destination Location" name="groupby_location_dest_id" domain="[]"
+                            context="{'group_by': 'location_dest_id'}"/>
+                    <separator/>
+
+                    <filter string="Created By" name="groupby_create_uid" domain="[]"
+                            context="{'group_by': 'create_uid'}"/>
+                    <filter string="Submitted By" name="groupby_user_submit_id" domain="[]"
+                            context="{'group_by': 'user_submit_id'}"/>
+                    <filter string="Approved By" name="groupby_user_approve_id" domain="[]"
+                            context="{'group_by': 'user_approve_id'}"/>
+                    <separator/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Window Actions -->
+    <record id="act_window_showroom_request_draft" model="ir.actions.act_window">
+        <field name="name">New Requests</field>
+        <field name="res_model">showroom.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state', '=', 'draft')]</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('showroom_request.view_showroom_request_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('showroom_request.view_showroom_request_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No showroom request found. Let's create one!
+            </p>
+            <p>
+                This view is used to manage all the showroom requests.
+            </p>
+        </field>
+    </record>
+
+    <record id="act_window_showroom_request_to_approve" model="ir.actions.act_window">
+        <field name="name">To Approve</field>
+        <field name="res_model">showroom.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state', '=', 'to_approve')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No showroom request found. Let's create one!
+            </p>
+            <p>
+                This view is used to manage all the showroom requests.
+            </p>
+        </field>
+    </record>
+
+    <record id="act_window_showroom_request_all" model="ir.actions.act_window">
+        <field name="name">All Requests</field>
+        <field name="res_model">showroom.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No showroom request found. Let's create one!
+            </p>
+            <p>
+                This view is used to manage all the showroom requests.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menus -->
+    <menuitem id="menu_sales_showroom" name="Show Room" parent="sale.sale_menu_root" sequence="3"
+              groups="showroom_request.group_user,showroom_request.group_manager">
+        <menuitem id="menu_sales_showroom_request_draft" name="New Requests" sequence="10"
+                  action="act_window_showroom_request_draft"/>
+        <menuitem id="menu_sales_showroom_request_to_approve" name="To Approve" sequence="10"
+                  action="act_window_showroom_request_to_approve"/>
+        <menuitem id="menu_sales_showroom_request_all" name="All Requests" sequence="10"
+                  action="act_window_showroom_request_all"/>
+    </menuitem>
+</odoo>

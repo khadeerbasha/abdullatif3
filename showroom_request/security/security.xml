@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access Right Category: Showroom Request -->
+    <record id="module_showroom_request" model="ir.module.category">
+        <field name="name">Showroom request</field>
+        <field name="sequence">90</field>
+    </record>
+
+    <!-- Can Submit group: Users belonging this group will be able to create and submit 'Showroom Request' -->
+    <record id="group_user" model="res.groups">
+        <field name="name">Can Be Submit</field>
+        <field name="comment">Users belonging this group will be able to create and submit 'Showroom Request'</field>
+        <field name="category_id" ref="module_showroom_request"/>
+        <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- Can Approve group: Users belonging this group will be able to approve 'Showroom Request' -->
+    <record id="group_manager" model="res.groups">
+        <field name="name">Can Be Approve</field>
+        <field name="comment">Users belonging this group will be able to approve 'Showroom Request'</field>
+        <field name="category_id" ref="module_showroom_request"/>
+        <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+</odoo>

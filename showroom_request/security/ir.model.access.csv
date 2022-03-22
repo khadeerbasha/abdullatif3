@@ -1,0 +1,17 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_showroom_request_group_user,access.showroom.request.user,model_showroom_request,base.group_user,1,0,0,0
+access_showroom_request_line_group_user,access.showroom.request.line.user,model_showroom_request_line,base.group_user,1,0,0,0
+
+access_showroom_request_group_showroom_request_user,access.showroom.request.group.showroom.request.user,model_showroom_request,showroom_request.group_user,1,1,1,1
+access_showroom_request_line_group_showroom_request_user,access.showroom.request.line.group.showroom.request.user,model_showroom_request_line,showroom_request.group_user,1,1,1,1
+
+access_showroom_request_group_showroom_request_manager,access.showroom.request.group.showroom.request.manager,model_showroom_request,showroom_request.group_manager,1,1,0,0
+access_showroom_request_line_group_showroom_request_manager,access.showroom.request.line.group.showroom.request.manager,model_showroom_request_line,showroom_request.group_manager,1,1,0,0
+
+access_stock_picking_group_showroom_request_user,access.stock.picking.group.showroom.request.user,stock.model_stock_picking,showroom_request.group_user,1,1,1,0
+access_stock_move_group_showroom_request_user,access.stock.move.group.showroom.request.user,stock.model_stock_move,showroom_request.group_user,1,1,1,0
+access_stock_move_line_group_showroom_request_user,access.stock.move.line.group.showroom.request.user,stock.model_stock_move_line,showroom_request.group_user,1,1,1,0
+
+access_stock_picking_group_showroom_request_manager,access.stock.picking.group.showroom.request.manager,stock.model_stock_picking,showroom_request.group_manager,1,1,1,0
+access_stock_move_group_showroom_request_manager,access.stock.move.group.showroom.request.manager,stock.model_stock_move,showroom_request.group_manager,1,1,1,0
+access_stock_move_line_group_showroom_request_manager,access.stock.move.line.group.showroom.request.manager,stock.model_stock_move_line,showroom_request.group_manager,1,1,1,0
