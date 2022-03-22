@@ -1,0 +1,30 @@
+{
+    'name': 'Sale Product Quantity Warhehouse/Location Wise',
+    'version': '15.0.20.12.2021',
+    'price': 15,
+    'currency': 'EUR',
+    'license': 'OPL-1',
+    'category': 'Sales Management',
+    'summary': """ Add Available Qty,Sale Price and Previous Order Price in Sale Order Line.
+    """,
+    'author': 'Vraja Technologies',
+    'depends': [
+        'sale_stock',
+        'sale_auto_internal_transfer',
+    ],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/sale_order_line.xml',
+        'wizard/res_config.xml',
+        'views/warehouse_product_wizard.xml',
+    ],
+    'test': [],
+    'css': [],
+    'demo': [],
+    'website': 'https://www.vrajatechnologies.com',
+    'live_test_url': 'https://www.vrajatechnologies.com/contactus',
+    'installable': True,
+    'application': False,
+    "images": ['static/description/product_stock.jpg'],
+    # 'images': ['static/description/christmas.gif'],
+}
