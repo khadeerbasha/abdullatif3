@@ -4,12 +4,28 @@ from odoo import models, fields, api, _
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import ValidationError, UserError
-
+import logging
+_logger = logging.getLogger(__name__)
 
 class HrLoan(models.Model):
 	_name = 'hr.loan'
 	_inherit = ['mail.thread', 'mail.activity.mixin']
 	_description = "Loan Request"
+	
+	@api.depends('loan_lines.paid','loan_lines.amount')
+	def _compute_loan_amount(self):
+		for loan in self:
+			total_paid = 0.0
+			total_amt = 0.0
+			for line in loan.loan_lines:
+				total_amt += line.amount
+				if line.paid:
+					total_paid += line.amount
+			loan.update({
+				'total_amount': total_amt,
+				'total_paid_amount': total_paid,
+				'balance_amount': total_amt - total_paid,
+			})
 
 	@api.model
 	def default_get(self, field_list):
@@ -21,16 +37,21 @@ class HrLoan(models.Model):
 		result['employee_id'] = self.env['hr.employee'].search([('user_id', '=', ts_user_id)], limit=1).id
 		return result
 
-	def _compute_loan_amount(self):
-		total_paid = 0.0
+	'''def _compute_loan_amount(self):
 		for loan in self:
+			total_paid = 0.0
 			for line in loan.loan_lines:
 				if line.paid:
+					_logger.info("Confirm Ids %s"%(line.paid))
 					total_paid += line.amount
+					_logger.info("Confirm Ids %s"%(total_paid))
+					#print("TTTTTTTTTTTTTTTTTTTTTT",total_paid)
+					#_logger.info("Confirm Ids %s"%(total_paid))
 			balance_amount = loan.loan_amount - total_paid
-			loan.total_amount = loan.loan_amount
-			loan.balance_amount = balance_amount
 			loan.total_paid_amount = total_paid
+			loan.total_amount = loan.loan_amount
+			loan.balance_amount = loan.loan_amount - total_paid'''
+			
 
 	name = fields.Char(string="Loan Name", readonly=True, help="Name of the loan")
 	multi_loan = fields.Boolean(string="Multi Loan")
@@ -51,10 +72,10 @@ class HrLoan(models.Model):
 	job_position = fields.Many2one('hr.job', related="employee_id.job_id", readonly=True, string="Job Position",
 								   help="Job position")
 	loan_amount = fields.Float(string="Loan Amount", required=True, help="Loan amount")
-	total_amount = fields.Float(string="Total Amount", store=True, readonly=True, compute='_compute_loan_amount',
+	total_amount = fields.Monetary(string="Total Amount", store=True, readonly=True, compute='_compute_loan_amount',
 								help="Total loan amount")
-	balance_amount = fields.Float(string="Balance Amount", store=True, compute='_compute_loan_amount', help="Balance amount")
-	total_paid_amount = fields.Float(string="Total Paid Amount", store=True, compute='_compute_loan_amount',
+	balance_amount = fields.Monetary(string="Balance Amount", store=True, compute='_compute_loan_amount', help="Balance amount")
+	total_paid_amount = fields.Monetary(string="Total Paid Amount", store=True, compute='_compute_loan_amount',
 									 help="Total paid amount")
 	loan_journal_count = fields.Integer(string='Journal Count', compute='_get_journal_count', store=False)
 
@@ -185,3 +206,16 @@ class HrEmployee(models.Model):
 		self.loan_count = self.env['hr.loan'].search_count([('employee_id', '=', self.id)])
 
 	loan_count = fields.Integer(string="Loan Count", compute='_compute_employee_loans')
+
+	def get_loan_deduction(self,employee, date_from, date_to):
+		
+		loan_obj = self.env['hr.loan']
+		loan_amount = 0.00
+		history_ids = self.env['hr.loan.line'].search_count([('date', '>=', date_from),('date', '<=', date_to),('employee_id', '=', employee),('paid', '=', False)])
+		if history_ids:
+			for each in history_ids:
+				vals = self.env['hr.loan.line'].browse()
+				if vals.loan_id.state == 'approve':
+				    loan_amount += vals.amount
+				    each.write({'paid': True})
+		return loan_amount

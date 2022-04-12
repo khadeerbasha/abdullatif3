@@ -207,7 +207,7 @@ class HrEmployee(models.Model):
 
 	loan_count = fields.Integer(string="Loan Count", compute='_compute_employee_loans')
 
-	def get_loan_deduction(self,employee, date_from, date_to):
+	'''def get_loan_deduction(self,employee, date_from, date_to):
 		
 		loan_obj = self.env['hr.loan']
 		loan_amount = 0.00
@@ -218,4 +218,4 @@ class HrEmployee(models.Model):
 				if vals.loan_id.state == 'approve':
 				    loan_amount += vals.amount
 				    each.write({'paid': True})
-		return loan_amount
+		return loan_amount'''
