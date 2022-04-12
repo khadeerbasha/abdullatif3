@@ -21,7 +21,7 @@ class HrLoanAcc(models.Model):
     employee_account_id = fields.Many2one('account.account', string="Credit Account")
     treasury_account_id = fields.Many2one('account.account', string="Debit Account")
     journal_id = fields.Many2one('account.journal', string="Journal")
-    pay_method = fields.Many2one('loan.payments', string='Payment Method', required=True)
+    pay_method = fields.Many2one('loan.payments', string='Loan Type', required=True)
     state = fields.Selection([
         ('draft', 'Draft'),
         ('waiting_approval_1', 'Submitted'),
@@ -35,64 +35,64 @@ class HrLoanAcc(models.Model):
     def action_approve(self):
         """This create account move for request.
             """
-        loan_approve = self.env['ir.config_parameter'].sudo().get_param('account.loan_approve')
+        #loan_approve = self.env['ir.config_parameter'].sudo().get_param('account.loan_approve')
         contract_obj = self.env['hr.contract'].search([('employee_id', '=', self.employee_id.id)])
         if not contract_obj:
             raise UserError('You must Define a contract for employee')
         if not self.loan_lines:
             raise UserError('You must compute installment before Approved')
         
-        if loan_approve:
-            self.write({'state': 'waiting_approval_2'})
-        else:
-            if not self.pay_method.debit_account_id or not self.pay_method.credit_account_id or not self.pay_method.journal_id:
-                raise UserError("You must enter Payment Method Credit account & Debit account and journal to approve ")
-            if not self.loan_lines:
-                raise UserError('You must compute Loan Request before Approved')
-            timenow = time.strftime('%Y-%m-%d')
-            for loan in self:
-                lines_amount = sum(loan.loan_lines.mapped('amount'))
-                if loan.loan_amount != lines_amount:
-                    raise ValidationError('Loan Amount must be equal to Total Amount')
-                for tab in loan.loan_lines:
-                    if tab.amount < 0.0:
-                        raise ValidationError('One of the Installment Amount is in Negative Value')
-                amount = loan.loan_amount
-                loan_name = loan.employee_id.name
-                reference = loan.name
-                journal_id = loan.pay_method.journal_id.id
-                debit_account_id = loan.pay_method.debit_account_id.id
-                credit_account_id = loan.pay_method.credit_account_id.id
-                debit_vals = {
-                    'name': loan_name,
-                    'account_id': debit_account_id,
-                    'journal_id': journal_id,
-                    'partner_id': loan.employee_id.address_home_id.id,
-                    'date': timenow,
-                    'debit': amount > 0.0 and amount or 0.0,
-                    'credit': amount < 0.0 and -amount or 0.0,
-                    'loan_id': loan.id,
-                }
-                credit_vals = {
-                    'name': loan_name,
-                    'account_id': credit_account_id,
-                    'journal_id': journal_id,
-                    'partner_id': loan.employee_id.address_home_id.id,
-                    'date': timenow,
-                    'debit': amount < 0.0 and -amount or 0.0,
-                    'credit': amount > 0.0 and amount or 0.0,
-                    'loan_id': loan.id,
-                }
-                vals = {
-                    'narration': loan_name,
-                    'ref': reference,
-                    'journal_id': journal_id,
-                    'date': timenow,
-                    'line_ids': [(0, 0, debit_vals), (0, 0, credit_vals)]
-                }
-                move = self.env['account.move'].create(vals)
-                move.post()
-            self.write({'state': 'approve'})
+        #if loan_approve:
+            #self.write({'state': 'waiting_approval_2'})
+        #else:
+        if not self.pay_method.debit_account_id or not self.pay_method.credit_account_id or not self.pay_method.journal_id:
+            raise UserError("You must enter Payment Method Credit account & Debit account and journal to approve ")
+        if not self.loan_lines:
+            raise UserError('You must compute Loan Request before Approved')
+        timenow = time.strftime('%Y-%m-%d')
+        for loan in self:
+            lines_amount = sum(loan.loan_lines.mapped('amount'))
+            if loan.loan_amount != lines_amount:
+                raise ValidationError('Loan Amount must be equal to Total Amount')
+            for tab in loan.loan_lines:
+                if tab.amount < 0.0:
+                    raise ValidationError('One of the Installment Amount is in Negative Value')
+            amount = loan.loan_amount
+            loan_name = loan.employee_id.name
+            reference = loan.name
+            journal_id = loan.pay_method.journal_id.id
+            debit_account_id = loan.pay_method.debit_account_id.id
+            credit_account_id = loan.pay_method.credit_account_id.id
+            debit_vals = {
+                'name': loan_name,
+                'account_id': debit_account_id,
+                'journal_id': journal_id,
+                'partner_id': loan.employee_id.address_home_id.id,
+                'date': timenow,
+                'debit': amount > 0.0 and amount or 0.0,
+                'credit': amount < 0.0 and -amount or 0.0,
+                'loan_id': loan.id,
+            }
+            credit_vals = {
+                'name': loan_name,
+                'account_id': credit_account_id,
+                'journal_id': journal_id,
+                'partner_id': loan.employee_id.address_home_id.id,
+                'date': timenow,
+                'debit': amount < 0.0 and -amount or 0.0,
+                'credit': amount > 0.0 and amount or 0.0,
+                'loan_id': loan.id,
+            }
+            vals = {
+                'narration': loan_name,
+                'ref': reference,
+                'journal_id': journal_id,
+                'date': timenow,
+                'line_ids': [(0, 0, debit_vals), (0, 0, credit_vals)]
+            }
+            move = self.env['account.move'].create(vals)
+            move.post()
+        self.write({'state': 'approve'})
         return True
 
     def action_reschedule(self):

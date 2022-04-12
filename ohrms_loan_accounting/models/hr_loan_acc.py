@@ -230,7 +230,7 @@ class HrPayslipAcc(models.Model):
                 line.loan_line_ids.action_paid_amount()
         return super(HrPayslipAcc, self).action_payslip_done()'''
         
-    def action_payslip_done(self):
+    '''def action_payslip_done(self):
         print("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
         #self.compute_sheet()
         for line in self.input_line_ids:
@@ -244,4 +244,4 @@ class HrPayslipAcc(models.Model):
                 loan_id = list(set(line.loan_line_ids.mapped('loan_id')))
                 if loan_id:
                     loan_id[0]._compute_loan_amount()
-        return res
+        return res'''
