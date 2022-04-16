@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="search_stock_picking_delivery_management_inherit" model="ir.ui.view">
+            <field name="name">search_stock_picking_delivery_management_inherit</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_internal_search"/>
+            <field name="arch" type="xml">
+                <filter name="status" position="after">
+                    <filter string="Delivery Status" name="tracking_state" domain="[]"
+                            context="{'group_by': 'tracking_state'}"/>
+                </filter>
+            </field>
+        </record>
+
+
+        <record model="ir.ui.view" id="stock_picking_delivery_management_kanban">
+            <field name="name">stock_picking_delivery_management_kanban</field>
+            <field name="model">stock.picking</field>
+            <field name="arch" type="xml">
+                <kanban class="o_kanban_mobile" sample="1">
+                    <field name="name"/>
+                    <field name="partner_id"/>
+                    <field name="location_dest_id"/>
+                    <field name="state"/>
+                    <field name="tracking_state"/>
+                    <field name="scheduled_date"/>
+                    <field name="activity_state"/>
+                    <progressbar field="activity_state"
+                                 colors='{"planned": "success", "today": "warning", "overdue": "danger"}'/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                                <div class="o_kanban_record_top mb8">
+                                    <field name="priority" widget="priority"/>
+                                    <div class="o_kanban_record_headings ml-1">
+                                        <strong class="o_kanban_record_title">
+                                            <span>
+                                                <t t-esc="record.name.value"/>
+                                            </span>
+                                        </strong>
+                                    </div>
+                                    <strong>
+                                        <field name="tracking_state" widget="label_selection"
+                                               options="{'classes': {'draft': 'default', 'cancel': 'default', 'waiting': 'warning', 'confirmed': 'warning', 'done': 'success'}}"/>
+                                    </strong>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <t t-esc="record.partner_id.value"/>
+                                        <field name="activity_ids" widget="kanban_activity"/>
+                                        <field name="json_popover" nolabel="1" widget="stock_rescheduling_popover"
+                                               attrs="{'invisible': [('json_popover', '=', False)]}"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <t t-esc="record.scheduled_date.value and record.scheduled_date.value.split(' ')[0] or False"/>
+                                    </div>
+                                </div>
+                                <div style="float:right;">
+                                    <button name="button_confirm_delivery" type="object"
+                                            class="btn btn-primary"
+                                            string="Confirm"
+                                            attrs="{'invisible':[('tracking_state','!=','draft')]}">
+                                        <span>
+                                            Confirm
+                                        </span>
+                                    </button>
+                                    <button name="action_reschedule_delivery" type="object"
+                                            string="Reschedule"
+                                            class="btn btn-primary"
+                                            attrs="{'invisible':[('tracking_state','not in',('confirmed','draft'))]}">
+                                        <span>
+                                            Reschedule
+                                        </span>
+                                    </button>
+                                    <button name="button_validate_delivery" type="object"
+                                            string="Done"
+                                            class="btn btn-primary"
+                                            attrs="{'invisible':[('tracking_state','!=','waiting')]}">
+                                        <span>
+                                            Mark as done
+                                        </span>
+                                    </button>
+                                </div>
+
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+
+        <!--    Actions -->
+        <record id="act_window_delivery_management_dashboard" model="ir.actions.act_window">
+            <field name="name">Delivery Management</field>
+            <field name="res_model">stock.picking</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[('picking_type_code','in',('internal','outgoing'))]</field>
+            <field name="context">{'search_default_tracking_state':1,'create':0}</field>
+            <field name="view_id" ref="stock_picking_delivery_management_kanban"/>
+        </record>
+        <record id="act_window_delivery_management_confirmed_orders" model="ir.actions.act_window">
+            <field name="name">Confirmed Orders</field>
+            <field name="res_model">stock.picking</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">
+                [('picking_type_code','in',('internal','outgoing')),('tracking_state','=','confirmed')]
+            </field>
+            <field name="context">{'create':0}</field>
+            <field name="view_id" ref="stock_picking_delivery_management_kanban"/>
+        </record>
+        <record id="act_window_delivery_management_rescheduled_orders" model="ir.actions.act_window">
+            <field name="name">Rescheduled Orders</field>
+            <field name="res_model">stock.picking</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">
+                [('picking_type_code','in',('internal','outgoing')),('tracking_state','=','reschedule')]
+            </field>
+            <field name="context">{'create':0}</field>
+            <field name="view_id" ref="stock_picking_delivery_management_kanban"/>
+        </record>
+        <record id="act_window_delivery_management_waiting_orders" model="ir.actions.act_window">
+            <field name="name">Waiting Orders</field>
+            <field name="res_model">stock.picking</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[('picking_type_code','in',('internal','outgoing')),('tracking_state','=','waiting')]
+            </field>
+            <field name="context">{'create':0}</field>
+            <field name="view_id" ref="stock_picking_delivery_management_kanban"/>
+        </record>
+        <record id="act_window_delivery_management_done_orders" model="ir.actions.act_window">
+            <field name="name">Delivered Orders</field>
+            <field name="res_model">stock.picking</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[('picking_type_code','in',('internal','outgoing')),('tracking_state','=','done')]
+            </field>
+            <field name="context">{'create':0}</field>
+            <field name="view_id" ref="stock_picking_delivery_management_kanban"/>
+        </record>
+
+        <!--        Maintenance Orders-->
+        <record id="delivery_helpdesk_ticket_action_main_tree" model="ir.actions.act_window">
+            <field name="name">Tickets</field>
+            <field name="res_model">helpdesk.ticket</field>
+            <field name="view_mode">tree,kanban,form</field>
+<!--            <field name="search_view_id" ref="helpdesk.helpdesk_tickets_view_search"/>-->
+            <field name="context">{'search_default_is_open': True, 'create':0}</field>
+        </record>
+        <!--        reporting-->
+        <record id="delivery_helpdesk_ticket_action_reporting" model="ir.actions.act_window">
+            <field name="name">Tickets</field>
+            <field name="res_model">helpdesk.ticket</field>
+            <field name="view_mode">graph,pivot</field>
+            <field name="search_view_id" ref="helpdesk.helpdesk_tickets_view_search"/>
+        </record>
+        <record id="delivery_move_action_reporting" model="ir.actions.act_window">
+            <field name="name">Deliveries</field>
+            <field name="res_model">stock.move</field>
+            <field name="view_mode">graph,pivot</field>
+            <field name="domain">[('picking_code','in',('internal','outgoing'))]</field>
+        </record>
+
+        <!-- Menus -->
+        <menuitem id="menu_delivery_management"
+                  name="Delivery Management"
+                  sequence="35"
+                  web_icon="delivery_management,static/img/icon.png"
+        />
+        <menuitem id="menu_delivery_management_dashboard"
+                  parent="menu_delivery_management"
+                  name="Dashboard"
+                  sequence="1"
+        />
+        <menuitem id="menu_delivery_management_all_orders"
+                  parent="menu_delivery_management_dashboard"
+                  name="All Orders"
+                  sequence="1"
+                  action="act_window_delivery_management_dashboard"
+        />
+        <menuitem id="menu_delivery_management_confirmed_orders"
+                  parent="menu_delivery_management_dashboard"
+                  name="Confirmed Orders"
+                  sequence="10"
+                  action="act_window_delivery_management_confirmed_orders"
+        />
+        <menuitem id="menu_delivery_management_rescheduled_orders"
+                  parent="menu_delivery_management_dashboard"
+                  name="Rescheduled Orders"
+                  sequence="20"
+                  action="act_window_delivery_management_rescheduled_orders"
+        />
+        <menuitem id="menu_delivery_management_waiting_orders"
+                  parent="menu_delivery_management_dashboard"
+                  name="Waiting Orders"
+                  sequence="30"
+                  action="act_window_delivery_management_waiting_orders"
+        />
+        <menuitem id="menu_delivery_management_done_orders"
+                  parent="menu_delivery_management_dashboard"
+                  name="Delivered To Customers"
+                  sequence="40"
+                  action="act_window_delivery_management_done_orders"
+        />
+        <!--        Maintenance menu-->
+        <menuitem id="menu_delivery_management_maintenance"
+                  parent="menu_delivery_management"
+                  name="Maintenance Orders"
+                  action="delivery_helpdesk_ticket_action_main_tree"
+                  sequence="10"
+        />
+        <!--        Reporting menu-->
+        <menuitem id="menu_delivery_management_reporting"
+                  parent="menu_delivery_management"
+                  name="Reporting"
+                  sequence="20">
+
+        </menuitem>
+
+        <menuitem id="menu_delivery_management_reporting_deliveries"
+                  name="Deliveries"
+                  parent="menu_delivery_management_reporting"
+                  action="delivery_move_action_reporting"
+                  sequence="10"/>
+
+        <menuitem id="menu_delivery_management_reporting_maintenance"
+                  name="Maintenance Orders"
+                  parent="menu_delivery_management_reporting"
+                  action="delivery_helpdesk_ticket_action_reporting"
+                  sequence="20"/>
+    </data>
+</odoo>

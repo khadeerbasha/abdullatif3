@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="reschedule_delivery_wizard" model="ir.ui.view">
+        <field name="name">reschedule.delivery.wizard</field>
+        <field name="model">reschedule.delivery.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="date"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="reason"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="confirm" class="btn btn-info" type="object"
+                            confirm="Are you sure to confirm this ACTION ?!"
+                            string="Confirm"
+                    />
+                    <button string="Cancel" class="btn-default" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>
